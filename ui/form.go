@@ -53,7 +53,11 @@ func (c *Form) AddWidget(w *Widget) {
 func (c *Form) onPaint(rgba *image.RGBA) {
 	cnv := NewCanvas(rgba)
 	for _, w := range c.widgets {
+		cnv.Save()
+		cnv.Translate(w.x, w.y)
+		cnv.SetClip(w.x, w.y, w.w, w.h)
 		w.onPaint(cnv)
+		cnv.Restore()
 	}
 }
 

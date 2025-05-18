@@ -10,8 +10,8 @@ func NewMyWidget(col color.RGBA) *ui.Widget {
 	var c ui.Widget
 	c.SetOnPaint(func(cnv *ui.Canvas) {
 		cnv.SetColor(col)
-		for i := c.X(); i < c.X()+c.W(); i++ {
-			for j := c.Y(); j < c.Y()+c.H(); j++ {
+		for i := 0; i < c.W(); i++ {
+			for j := 0; j < c.H(); j++ {
 				cnv.SetPixel(i, j)
 			}
 		}

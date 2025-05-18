@@ -55,7 +55,7 @@ func (c *Canvas) SetClip(x, y, w, h int) {
 	c.state.clipH = h
 }
 
-func (c *Canvas) SetTranslate(x, y int) {
+func (c *Canvas) Translate(x, y int) {
 	c.state.translateX += x
 	c.state.translateY += y
 }
