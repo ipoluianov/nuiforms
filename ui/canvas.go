@@ -32,8 +32,9 @@ func NewCanvas(rgba *image.RGBA) *Canvas {
 }
 
 func (c *Canvas) Save() {
+	oldState := *c.state
 	c.stack = append(c.stack, c.state)
-	c.state = &canvasState{}
+	c.state = &oldState
 }
 
 func (c *Canvas) Restore() {

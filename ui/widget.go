@@ -15,12 +15,18 @@ type Widget struct {
 	anchorRight  bool
 	anchorBottom bool
 
+	widgets []*Widget
+
 	onCustomPaint func(cnv *Canvas)
 }
 
 func NewWidget() *Widget {
 	var c Widget
 	return &c
+}
+
+func (c *Widget) AddWidget(w *Widget) {
+	c.widgets = append(c.widgets, w)
 }
 
 func (c *Widget) X() int {
@@ -63,6 +69,14 @@ func (c *Widget) SetOnPaint(f func(cnv *Canvas)) {
 func (c *Widget) onPaint(cnv *Canvas) {
 	if c.onCustomPaint != nil {
 		c.onCustomPaint(cnv)
+	}
+
+	for _, w := range c.widgets {
+		cnv.Save()
+		cnv.Translate(w.x, w.y)
+		cnv.SetClip(w.x, w.y, w.w, w.h)
+		w.onPaint(cnv)
+		cnv.Restore()
 	}
 }
 
