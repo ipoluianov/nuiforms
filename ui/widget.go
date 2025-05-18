@@ -1,9 +1,5 @@
 package ui
 
-import (
-	"image"
-)
-
 type Widget struct {
 	// position
 	x int
@@ -19,7 +15,7 @@ type Widget struct {
 	anchorRight  bool
 	anchorBottom bool
 
-	onCustomPaint func(rgba *image.RGBA)
+	onCustomPaint func(cnv *Canvas)
 }
 
 func NewWidget() *Widget {
@@ -60,15 +56,14 @@ func (c *Widget) SetAnchors(left, top, right, bottom bool) {
 	c.anchorBottom = bottom
 }
 
-func (c *Widget) SetOnPaint(f func(rgba *image.RGBA)) {
+func (c *Widget) SetOnPaint(f func(cnv *Canvas)) {
 	c.onCustomPaint = f
 }
 
-func (c *Widget) onPaint(rgba *image.RGBA) {
+func (c *Widget) onPaint(cnv *Canvas) {
 	if c.onCustomPaint != nil {
-		c.onCustomPaint(rgba)
+		c.onCustomPaint(cnv)
 	}
-
 }
 
 func (c *Widget) onResize(oldWidth, oldHeight, newWidth, newHeight int) {

@@ -51,8 +51,9 @@ func (c *Form) AddWidget(w *Widget) {
 }
 
 func (c *Form) onPaint(rgba *image.RGBA) {
+	cnv := NewCanvas(rgba)
 	for _, w := range c.widgets {
-		w.onPaint(rgba)
+		w.onPaint(cnv)
 	}
 }
 
