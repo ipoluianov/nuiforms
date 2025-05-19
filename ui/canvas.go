@@ -69,8 +69,5 @@ func (c *Canvas) SetPixel(x, y int) {
 			return
 		}
 	}
-	if x < 0 || y < 0 || x >= c.rgba.Rect.Dx() || y >= c.rgba.Rect.Dy() {
-		return
-	}
 	c.rgba.Set(x, y, c.state.col)
 }
