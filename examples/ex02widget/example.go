@@ -13,14 +13,14 @@ func Run() {
 
 	{
 		myWidget := NewMyWidget(color.RGBA{0, 100, 50, 255})
-		myWidget.SetPosition(10, 10)
+		myWidget.SetPosition(8, 8)
 		myWidget.SetSize(300, 480)
 		myWidget.SetAnchors(true, true, false, true)
 		form.Panel().AddWidget(myWidget)
 	}
 	{
 		myWidget := NewMyWidget(color.RGBA{0, 50, 100, 255})
-		myWidget.SetPosition(320, 10)
+		myWidget.SetPosition(320, 8)
 		myWidget.SetSize(470, 480)
 		myWidget.SetAnchors(true, true, true, true)
 		form.Panel().AddWidget(myWidget)
@@ -28,7 +28,7 @@ func Run() {
 
 	{
 		myWidget := NewMyWidget(color.RGBA{100, 0, 50, 255})
-		myWidget.SetPosition(10, 500)
+		myWidget.SetPosition(8, 500)
 		myWidget.SetSize(780, 90)
 		myWidget.SetAnchors(true, false, true, true)
 		form.Panel().AddWidget(myWidget)
