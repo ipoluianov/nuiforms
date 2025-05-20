@@ -13,11 +13,8 @@ func NewMyWidget(col color.RGBA) *ui.Widget {
 	c.SetSize(100, 100)
 	c.SetOnPaint(func(cnv *ui.Canvas) {
 		cnv.SetColor(col)
-		for i := 0; i < c.W(); i++ {
-			for j := 0; j < c.H(); j++ {
-				cnv.SetPixel(i, j)
-			}
-		}
+		cnv.FillRect(0, 0, c.W(), c.H(), col)
+		cnv.DrawText(10, 40, "MyWidget", "robotomono", 16, color.RGBA{255, 255, 255, 255}, false)
 	})
 
 	secWidget := NewSecondWidget(color.RGBA{col.R, col.G + 50, col.B + 20, 255})

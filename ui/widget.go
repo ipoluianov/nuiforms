@@ -196,14 +196,6 @@ func (c *Widget) processPaint(cnv *Canvas) {
 			cnv.SetPixel(c.w-1, y)
 		}
 	}
-
-	cnv.SetColor(color.RGBA{255, 0, 0, 255})
-
-	for x := c.lastMouseX - 2; x < c.lastMouseX+2; x++ {
-		for y := c.lastMouseY - 2; y < c.lastMouseY+2; y++ {
-			cnv.SetPixel(x, y)
-		}
-	}
 }
 
 func (c *Widget) processMouseDown(button nuimouse.MouseButton, x int, y int) {

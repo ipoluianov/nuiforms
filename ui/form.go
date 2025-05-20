@@ -2,7 +2,6 @@ package ui
 
 import (
 	"image"
-	"image/color"
 
 	"github.com/ipoluianov/nui/nui"
 	"github.com/ipoluianov/nui/nuikey"
@@ -31,14 +30,6 @@ func NewForm() *Form {
 	c.topWidget.SetPosition(0, 0)
 	c.topWidget.SetSize(c.width, c.height)
 	c.topWidget.SetAnchors(true, true, true, true)
-	c.topWidget.SetOnPaint(func(cnv *Canvas) {
-		cnv.SetColor(color.RGBA{0, 50, 0, 255})
-		for i := 0; i < c.topWidget.w; i++ {
-			for j := 0; j < c.topWidget.h; j++ {
-				cnv.SetPixel(i, j)
-			}
-		}
-	})
 	return &c
 }
 
