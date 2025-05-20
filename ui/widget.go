@@ -3,7 +3,6 @@ package ui
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"image/color"
 	"strings"
 
 	"github.com/ipoluianov/nui/nuikey"
@@ -31,8 +30,9 @@ type Widget struct {
 	// inner widgets
 	widgets []*Widget
 
+	props map[string]interface{}
+
 	// temp
-	hover      bool
 	lastMouseX int
 	lastMouseY int
 
@@ -46,6 +46,7 @@ type Widget struct {
 	onKeyDown     func(key nuikey.Key)
 	onKeyUp       func(key nuikey.Key)
 	onMouseWheel  func(deltaX, deltaY int)
+	onClick       func(button nuimouse.MouseButton, x int, y int)
 }
 
 func NewWidget() *Widget {
@@ -53,6 +54,7 @@ func NewWidget() *Widget {
 	randomBytes := make([]byte, 8)
 	rand.Read(randomBytes)
 	c.name = "Widget-" + strings.ToUpper(hex.EncodeToString(randomBytes))
+	c.props = make(map[string]interface{})
 	return &c
 }
 
@@ -80,6 +82,26 @@ func (c *Widget) H() int {
 	return c.h
 }
 
+func (c *Widget) SetProp(key string, value interface{}) {
+	c.props[key] = value
+}
+
+func (c *Widget) GetProp(key string) interface{} {
+	if value, ok := c.props[key]; ok {
+		return value
+	}
+	return nil
+}
+
+func (c *Widget) GetPropString(key string, defaultValue string) string {
+	if value, ok := c.props[key]; ok {
+		if strValue, ok := value.(string); ok {
+			return strValue
+		}
+	}
+	return defaultValue
+}
+
 func (c *Widget) Focus() {
 	MainForm.focusedWidget = c
 	MainForm.Update()
@@ -87,6 +109,10 @@ func (c *Widget) Focus() {
 
 func (c *Widget) IsFocused() bool {
 	return MainForm.focusedWidget == c
+}
+
+func (c *Widget) IsHovered() bool {
+	return MainForm.hoverWidget == c
 }
 
 func (c *Widget) Name() string {
@@ -109,6 +135,10 @@ func (c *Widget) SetAnchors(left, top, right, bottom bool) {
 	c.anchorTop = top
 	c.anchorRight = right
 	c.anchorBottom = bottom
+}
+
+func (c *Widget) SetOnClick(f func(button nuimouse.MouseButton, x int, y int)) {
+	c.onClick = f
 }
 
 func (c *Widget) SetOnPaint(f func(cnv *Canvas)) {
@@ -177,15 +207,15 @@ func (c *Widget) processPaint(cnv *Canvas) {
 		cnv.Restore()
 	}
 
-	if c.hover {
+	/*if c.IsHovered() {
 		cnv.SetColor(color.RGBA{255, 255, 255, 255})
 		for x := 0; x < c.w; x++ {
 			cnv.SetPixel(x, 0)
 			cnv.SetPixel(x, 1)
 		}
-	}
+	}*/
 
-	if c.IsFocused() {
+	/*if c.IsFocused() {
 		cnv.SetColor(color.RGBA{0, 255, 0, 255})
 		for x := 0; x < c.w; x++ {
 			cnv.SetPixel(x, 0)
@@ -195,7 +225,7 @@ func (c *Widget) processPaint(cnv *Canvas) {
 			cnv.SetPixel(0, y)
 			cnv.SetPixel(c.w-1, y)
 		}
-	}
+	}*/
 }
 
 func (c *Widget) processMouseDown(button nuimouse.MouseButton, x int, y int) {
@@ -232,22 +262,15 @@ func (c *Widget) processMouseMove(x int, y int) {
 	}
 
 	for _, w := range c.widgets {
-		widgetInArea := false
+		//widgetInArea := false
 		if x >= w.x && x < w.x+w.w && y >= w.y && y < w.y+w.h {
 			w.processMouseMove(x-w.x, y-w.y)
-			widgetInArea = true
-		}
-
-		if widgetInArea && !w.hover {
-			w.processMouseEnter()
-		} else if !widgetInArea && w.hover {
-			w.processMouseLeave()
+			//widgetInArea = true
 		}
 	}
 }
 
 func (c *Widget) processMouseLeave() {
-	c.hover = false
 	if c.onMouseLeave != nil {
 		c.onMouseLeave()
 	}
@@ -255,7 +278,6 @@ func (c *Widget) processMouseLeave() {
 }
 
 func (c *Widget) processMouseEnter() {
-	c.hover = true
 	if c.onMouseEnter != nil {
 		c.onMouseEnter()
 	}

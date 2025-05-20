@@ -14,6 +14,9 @@ type Form struct {
 	width  int
 	height int
 
+	lastMouseX int
+	lastMouseY int
+
 	topWidget     *Widget
 	hoverWidget   *Widget
 	focusedWidget *Widget
@@ -106,6 +109,19 @@ func (c *Form) processMouseUp(button nuimouse.MouseButton, x int, y int) {
 
 func (c *Form) processMouseMove(x int, y int) {
 	c.topWidget.processMouseMove(x, y)
+	c.lastMouseX = x
+	c.lastMouseY = y
+	hoverWidget := c.topWidget.findWidgetAt(x, y)
+	if hoverWidget != c.hoverWidget {
+		if c.hoverWidget != nil {
+			c.hoverWidget.processMouseLeave()
+		}
+		c.hoverWidget = hoverWidget
+		if c.hoverWidget != nil {
+			c.hoverWidget.processMouseEnter()
+		}
+	}
+
 	c.Update()
 }
 
@@ -150,8 +166,8 @@ func (c *Form) processChar(char rune) {
 }
 
 func (c *Form) processMouseWheel(deltaX int, deltaY int) {
-	if c.focusedWidget != nil {
-		c.focusedWidget.processMouseWheel(deltaX, deltaY)
+	if c.hoverWidget != nil {
+		c.hoverWidget.processMouseWheel(deltaX, deltaY)
 		return
 	}
 	c.topWidget.processMouseWheel(deltaX, deltaY)

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image/color"
 
-	"github.com/ipoluianov/nui/nuimouse"
 	"github.com/ipoluianov/nuiforms/ui"
 )
 
@@ -17,40 +16,14 @@ func NewMyWidget(col color.RGBA) *ui.Widget {
 		cnv.DrawText(10, 40, "MyWidget", "robotomono", 16, color.RGBA{255, 255, 255, 255}, false)
 	})
 
-	secWidget := NewSecondWidget(color.RGBA{col.R, col.G + 50, col.B + 20, 255})
-	secWidget.SetPosition(10, 10)
-	secWidget.SetSize(20, 20)
-	c.AddWidget(secWidget)
-	return c
-}
+	btn1 := ui.NewButton()
+	btn1.SetSize(80, 30)
+	btn1.SetPosition(10, 10)
+	btn1.SetProp("text", "OK")
+	btn1.SetProp("onClick", func() {
+		fmt.Println("Button OK clicked")
+	})
+	c.AddWidget(btn1)
 
-func NewSecondWidget(col color.RGBA) *ui.Widget {
-	c := ui.NewWidget()
-	inside := false
-	c.SetOnPaint(func(cnv *ui.Canvas) {
-		if inside {
-			cnv.SetColor(col)
-		} else {
-			cnv.SetColor(color.RGBA{10, 10, 10, 255})
-		}
-		for i := 0; i < c.W(); i++ {
-			for j := 0; j < c.H(); j++ {
-				cnv.SetPixel(i, j)
-			}
-		}
-	})
-	c.SetOnMouseDown(func(button nuimouse.MouseButton, x int, y int) {
-		if button == nuimouse.MouseButtonLeft {
-			fmt.Println("Left button clicked", c.Name(), x, y)
-		}
-	})
-	c.SetOnMouseEnter(func() {
-		inside = true
-		ui.MainForm.Update()
-	})
-	c.SetOnMouseLeave(func() {
-		inside = false
-		ui.MainForm.Update()
-	})
 	return c
 }
