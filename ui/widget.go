@@ -36,6 +36,8 @@ type Widget struct {
 	lastMouseX int
 	lastMouseY int
 
+	mouseCursor nuimouse.MouseCursor
+
 	// callbacks
 	onCustomPaint func(cnv *Canvas)
 	onMouseDown   func(button nuimouse.MouseButton, x int, y int)
@@ -64,6 +66,10 @@ func (c *Widget) SetName(name string) {
 
 func (c *Widget) AddWidget(w *Widget) {
 	c.widgets = append(c.widgets, w)
+}
+
+func (c *Widget) SetMouseCursor(cursor nuimouse.MouseCursor) {
+	c.mouseCursor = cursor
 }
 
 func (c *Widget) X() int {

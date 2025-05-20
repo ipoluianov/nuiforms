@@ -14,8 +14,9 @@ type Form struct {
 	width  int
 	height int
 
-	lastMouseX int
-	lastMouseY int
+	lastMouseX      int
+	lastMouseY      int
+	lastMouseCursor nuimouse.MouseCursor
 
 	topWidget     *Widget
 	hoverWidget   *Widget
@@ -120,6 +121,18 @@ func (c *Form) processMouseMove(x int, y int) {
 		if c.hoverWidget != nil {
 			c.hoverWidget.processMouseEnter()
 		}
+	}
+
+	newCursor := nuimouse.MouseCursorArrow
+	if c.hoverWidget != nil {
+		if c.hoverWidget.mouseCursor != nuimouse.MouseCursorNotDefined {
+			newCursor = c.hoverWidget.mouseCursor
+		}
+	}
+
+	if c.lastMouseCursor != newCursor {
+		c.wnd.SetMouseCursor(newCursor)
+		c.lastMouseCursor = newCursor
 	}
 
 	c.Update()

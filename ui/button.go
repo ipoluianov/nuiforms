@@ -14,11 +14,10 @@ func NewButton() *Widget {
 		backColor := color.RGBA{0, 0, 0, 255}
 		if c.IsHovered() {
 			backColor = color.RGBA{50, 50, 50, 255}
-		}
-
-		clicked := c.GetPropBool("clicked", false)
-		if clicked {
-			backColor = color.RGBA{100, 100, 100, 255}
+			clicked := c.GetPropBool("clicked", false)
+			if clicked {
+				backColor = color.RGBA{100, 100, 100, 255}
+			}
 		}
 
 		cnv.FillRect(0, 0, c.W(), c.H(), backColor)
@@ -28,16 +27,20 @@ func NewButton() *Widget {
 		cnv.DrawTextMultiline(0, 0, c.W(), c.H(), HAlignCenter, VAlignCenter, text, color.RGBA{255, 255, 255, 255}, "robotomono", 16, false)
 	})
 
+	c.SetMouseCursor(nuimouse.MouseCursorPointer)
+
 	c.SetOnMouseDown(func(button nuimouse.MouseButton, x int, y int) {
 		c.SetProp("clicked", true)
-		fnOnClick, ok := c.GetProp("onClick").(func())
-		if ok {
-			fnOnClick()
-		}
 	})
 
 	c.SetOnMouseUp(func(button nuimouse.MouseButton, x int, y int) {
 		c.SetProp("clicked", false)
+		if MainForm.hoverWidget == c {
+			fnOnClick, ok := c.GetProp("onClick").(func())
+			if ok {
+				fnOnClick()
+			}
+		}
 	})
 
 	//fnOnClick := c.GetProp("onClick")
