@@ -1,6 +1,19 @@
 package ui
 
+import (
+	"crypto/rand"
+	"encoding/hex"
+	"image/color"
+	"strings"
+
+	"github.com/ipoluianov/nui/nuikey"
+	"github.com/ipoluianov/nui/nuimouse"
+)
+
 type Widget struct {
+	name     string
+	userData interface{}
+
 	// position
 	x int
 	y int
@@ -15,14 +28,34 @@ type Widget struct {
 	anchorRight  bool
 	anchorBottom bool
 
+	// inner widgets
 	widgets []*Widget
 
+	// temp
+	hover bool
+
+	// callbacks
 	onCustomPaint func(cnv *Canvas)
+	onMouseDown   func(button nuimouse.MouseButton, x int, y int)
+	onMouseUp     func(button nuimouse.MouseButton, x int, y int)
+	onMouseMove   func(x int, y int)
+	onMouseLeave  func()
+	onMouseEnter  func()
+	onKeyDown     func(key nuikey.Key)
+	onKeyUp       func(key nuikey.Key)
+	onMouseWheel  func(deltaX, deltaY int)
 }
 
 func NewWidget() *Widget {
 	var c Widget
+	randomBytes := make([]byte, 8)
+	rand.Read(randomBytes)
+	c.name = "Widget-" + strings.ToUpper(hex.EncodeToString(randomBytes))
 	return &c
+}
+
+func (c *Widget) SetName(name string) {
+	c.name = name
 }
 
 func (c *Widget) AddWidget(w *Widget) {
@@ -45,12 +78,17 @@ func (c *Widget) H() int {
 	return c.h
 }
 
+func (c *Widget) Name() string {
+	return c.name
+}
+
 func (c *Widget) SetPosition(x, y int) {
 	c.x = x
 	c.y = y
 }
 
 func (c *Widget) SetSize(w, h int) {
+	c.updateLayout(c.w, c.h, w, h)
 	c.w = w
 	c.h = h
 }
@@ -66,7 +104,48 @@ func (c *Widget) SetOnPaint(f func(cnv *Canvas)) {
 	c.onCustomPaint = f
 }
 
-func (c *Widget) onPaint(cnv *Canvas) {
+func (c *Widget) SetOnMouseDown(f func(button nuimouse.MouseButton, x int, y int)) {
+	c.onMouseDown = f
+}
+
+func (c *Widget) SetOnMouseUp(f func(button nuimouse.MouseButton, x int, y int)) {
+	c.onMouseUp = f
+}
+
+func (c *Widget) SetOnMouseMove(f func(x int, y int)) {
+	c.onMouseMove = f
+}
+
+func (c *Widget) SetOnMouseLeave(f func()) {
+	c.onMouseLeave = f
+}
+
+func (c *Widget) SetOnMouseEnter(f func()) {
+	c.onMouseEnter = f
+}
+
+func (c *Widget) SetOnKeyDown(f func(key nuikey.Key)) {
+	c.onKeyDown = f
+}
+
+func (c *Widget) SetOnKeyUp(f func(key nuikey.Key)) {
+	c.onKeyUp = f
+}
+
+func (c *Widget) SetOnMouseWheel(f func(deltaX, deltaY int)) {
+	c.onMouseWheel = f
+}
+
+func (c *Widget) getWidgetAt(x, y int) *Widget {
+	for _, w := range c.widgets {
+		if x >= w.x && x < w.x+w.w && y >= w.y && y < w.y+w.h {
+			return w
+		}
+	}
+	return nil
+}
+
+func (c *Widget) processPaint(cnv *Canvas) {
 	if c.onCustomPaint != nil {
 		c.onCustomPaint(cnv)
 	}
@@ -75,37 +154,140 @@ func (c *Widget) onPaint(cnv *Canvas) {
 		cnv.Save()
 		cnv.Translate(w.x, w.y)
 		cnv.SetClip(w.x, w.y, w.w, w.h)
-		w.onPaint(cnv)
+		w.processPaint(cnv)
 		cnv.Restore()
+	}
+
+	if c.hover {
+		cnv.SetColor(color.RGBA{255, 255, 255, 255})
+		for x := 0; x < c.w; x++ {
+			cnv.SetPixel(x, 0)
+			cnv.SetPixel(x, 1)
+		}
 	}
 }
 
-func (c *Widget) onResize(oldWidth, oldHeight, newWidth, newHeight int) {
-	deltaWidth := newWidth - oldWidth
-	deltaHeight := newHeight - oldHeight
-
-	newX := c.X()
-	newY := c.Y()
-	newW := c.W()
-	newH := c.H()
-
-	if c.anchorLeft && c.anchorRight {
-		newW += deltaWidth
-	}
-	if !c.anchorLeft && c.anchorRight {
-		newX += deltaWidth
+func (c *Widget) processMouseDown(button nuimouse.MouseButton, x int, y int) {
+	if c.onMouseDown != nil {
+		c.onMouseDown(button, x, y)
 	}
 
-	if c.anchorTop && c.anchorBottom {
-		newH += deltaHeight
+	for _, w := range c.widgets {
+		if x >= w.x && x < w.x+w.w && y >= w.y && y < w.y+w.h {
+			w.processMouseDown(button, x-w.x, y-w.y)
+		}
+	}
+}
+
+func (c *Widget) processMouseUp(button nuimouse.MouseButton, x int, y int) {
+	if c.onMouseUp != nil {
+		c.onMouseUp(button, x, y)
 	}
 
-	if !c.anchorTop && c.anchorBottom {
-		newY += deltaHeight
+	for _, w := range c.widgets {
+		if x >= w.x && x < w.x+w.w && y >= w.y && y < w.y+w.h {
+			w.processMouseUp(button, x-w.x, y-w.y)
+		}
+	}
+}
+
+func (c *Widget) processMouseMove(x int, y int) {
+	if c.onMouseMove != nil {
+		c.onMouseMove(x, y)
 	}
 
-	c.x = newX
-	c.y = newY
-	c.w = newW
-	c.h = newH
+	for _, w := range c.widgets {
+		widgetInArea := false
+		if x >= w.x && x < w.x+w.w && y >= w.y && y < w.y+w.h {
+			w.processMouseMove(x-w.x, y-w.y)
+			widgetInArea = true
+		}
+
+		if widgetInArea && !w.hover {
+			w.processMouseEnter()
+		} else if !widgetInArea && w.hover {
+			w.processMouseLeave()
+		}
+	}
+}
+
+func (c *Widget) processMouseLeave() {
+	c.hover = false
+	if c.onMouseLeave != nil {
+		c.onMouseLeave()
+	}
+	MainForm.Update()
+}
+
+func (c *Widget) processMouseEnter() {
+	c.hover = true
+	if c.onMouseEnter != nil {
+		c.onMouseEnter()
+	}
+	MainForm.Update()
+}
+
+func (c *Widget) processKeyDown(key nuikey.Key) {
+	if c.onKeyDown != nil {
+		c.onKeyDown(key)
+	}
+
+	for _, w := range c.widgets {
+		w.processKeyDown(key)
+	}
+}
+
+func (c *Widget) processKeyUp(key nuikey.Key) {
+	if c.onKeyUp != nil {
+		c.onKeyUp(key)
+	}
+
+	for _, w := range c.widgets {
+		w.processKeyUp(key)
+	}
+}
+
+func (c *Widget) processMouseWheel(deltaX, deltaY int) {
+	if c.onMouseWheel != nil {
+		c.onMouseWheel(deltaX, deltaY)
+	}
+
+	for _, w := range c.widgets {
+		w.processMouseWheel(deltaX, deltaY)
+	}
+}
+
+func (c *Widget) updateLayout(oldWidth, oldHeight, newWidth, newHeight int) {
+	for _, w := range c.widgets {
+		deltaWidth := newWidth - oldWidth
+		deltaHeight := newHeight - oldHeight
+
+		newX := w.X()
+		newY := w.Y()
+		newW := w.W()
+		newH := w.H()
+
+		if w.anchorLeft && w.anchorRight {
+			newW += deltaWidth
+		}
+		if !w.anchorLeft && w.anchorRight {
+			newX += deltaWidth
+		}
+
+		if w.anchorTop && w.anchorBottom {
+			newH += deltaHeight
+		}
+
+		if !w.anchorTop && w.anchorBottom {
+			newY += deltaHeight
+		}
+
+		w.SetSize(newW, newH)
+		w.SetPosition(newX, newY)
+
+		/*w.x = newX
+		w.y = newY
+		w.w = newW
+		w.h = newH*/
+	}
 }
