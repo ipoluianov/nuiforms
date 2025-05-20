@@ -16,6 +16,11 @@ func NewButton() *Widget {
 			backColor = color.RGBA{50, 50, 50, 255}
 		}
 
+		clicked := c.GetPropBool("clicked", false)
+		if clicked {
+			backColor = color.RGBA{100, 100, 100, 255}
+		}
+
 		cnv.FillRect(0, 0, c.W(), c.H(), backColor)
 
 		text := c.GetPropString("text", "")
@@ -24,10 +29,15 @@ func NewButton() *Widget {
 	})
 
 	c.SetOnMouseDown(func(button nuimouse.MouseButton, x int, y int) {
+		c.SetProp("clicked", true)
 		fnOnClick, ok := c.GetProp("onClick").(func())
 		if ok {
 			fnOnClick()
 		}
+	})
+
+	c.SetOnMouseUp(func(button nuimouse.MouseButton, x int, y int) {
+		c.SetProp("clicked", false)
 	})
 
 	//fnOnClick := c.GetProp("onClick")

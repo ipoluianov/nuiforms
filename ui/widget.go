@@ -102,6 +102,24 @@ func (c *Widget) GetPropString(key string, defaultValue string) string {
 	return defaultValue
 }
 
+func (c *Widget) GetPropInt(key string, defaultValue int) int {
+	if value, ok := c.props[key]; ok {
+		if intValue, ok := value.(int); ok {
+			return intValue
+		}
+	}
+	return defaultValue
+}
+
+func (c *Widget) GetPropBool(key string, defaultValue bool) bool {
+	if value, ok := c.props[key]; ok {
+		if boolValue, ok := value.(bool); ok {
+			return boolValue
+		}
+	}
+	return defaultValue
+}
+
 func (c *Widget) Focus() {
 	MainForm.focusedWidget = c
 	MainForm.Update()
@@ -248,9 +266,7 @@ func (c *Widget) processMouseUp(button nuimouse.MouseButton, x int, y int) {
 	}
 
 	for _, w := range c.widgets {
-		if x >= w.x && x < w.x+w.w && y >= w.y && y < w.y+w.h {
-			w.processMouseUp(button, x-w.x, y-w.y)
-		}
+		w.processMouseUp(button, x-w.x, y-w.y)
 	}
 }
 
