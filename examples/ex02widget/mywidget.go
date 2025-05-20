@@ -10,6 +10,7 @@ import (
 
 func NewMyWidget(col color.RGBA) *ui.Widget {
 	c := ui.NewWidget()
+	c.SetSize(100, 100)
 	c.SetOnPaint(func(cnv *ui.Canvas) {
 		cnv.SetColor(col)
 		for i := 0; i < c.W(); i++ {
@@ -21,7 +22,7 @@ func NewMyWidget(col color.RGBA) *ui.Widget {
 
 	secWidget := NewSecondWidget(color.RGBA{col.R, col.G + 50, col.B + 20, 255})
 	secWidget.SetPosition(10, 10)
-	secWidget.SetSize(50, 50)
+	secWidget.SetSize(20, 20)
 	c.AddWidget(secWidget)
 	return c
 }

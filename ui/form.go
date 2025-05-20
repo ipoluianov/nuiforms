@@ -15,7 +15,9 @@ type Form struct {
 	width  int
 	height int
 
-	topWidget *Widget
+	topWidget     *Widget
+	hoverWidget   *Widget
+	focusedWidget *Widget
 }
 
 var MainForm *Form
@@ -61,17 +63,22 @@ func (c *Form) Panel() *Widget {
 
 func (c *Form) Exec() {
 	c.wnd = nui.CreateWindow(c.title, c.width, c.height, true)
+
 	MainForm = c
-	c.wnd.OnPaint(c.onPaint)
-	c.wnd.OnResize(c.onResize)
-	c.wnd.OnMouseButtonDown(c.onMouseDown)
-	c.wnd.OnMouseButtonUp(c.onMouseUp)
-	c.wnd.OnMouseMove(c.onMouseMove)
-	c.wnd.OnMouseLeave(c.onMouseLeave)
-	c.wnd.OnMouseEnter(c.onMouseEnter)
-	c.wnd.OnKeyDown(c.onKeyDown)
-	c.wnd.OnKeyUp(c.onKeyUp)
-	c.wnd.OnMouseWheel(c.onMouseWheel)
+
+	c.wnd.OnPaint(c.processPaint)
+	c.wnd.OnResize(c.processResize)
+	c.wnd.OnMouseButtonDown(c.processMouseDown)
+	c.wnd.OnMouseButtonUp(c.processMouseUp)
+	c.wnd.OnMouseButtonDblClick(c.processMouseDblClick)
+	c.wnd.OnMouseMove(c.processMouseMove)
+	c.wnd.OnMouseWheel(c.processMouseWheel)
+	c.wnd.OnMouseLeave(c.processMouseLeave)
+	c.wnd.OnMouseEnter(c.processMouseEnter)
+	c.wnd.OnKeyDown(c.processKeyDown)
+	c.wnd.OnKeyUp(c.processKeyUp)
+	c.wnd.OnChar(c.processChar)
+
 	c.wnd.Show()
 	c.wnd.EventLoop()
 }
@@ -82,46 +89,79 @@ func (c *Form) Update() {
 	}
 }
 
-func (c *Form) onPaint(rgba *image.RGBA) {
+func (c *Form) processPaint(rgba *image.RGBA) {
 	cnv := NewCanvas(rgba)
 	c.topWidget.processPaint(cnv)
 }
 
-func (c *Form) onResize(width, height int) {
+func (c *Form) processResize(width, height int) {
 	c.topWidget.SetSize(width, height)
 	c.width = width
 	c.height = height
 }
 
-func (c *Form) onMouseDown(button nuimouse.MouseButton, x int, y int) {
+func (c *Form) processMouseDown(button nuimouse.MouseButton, x int, y int) {
+	widgetAtCoords := c.topWidget.findWidgetAt(x, y)
+	if widgetAtCoords != nil {
+		widgetAtCoords.Focus()
+	}
 	c.topWidget.processMouseDown(button, x, y)
+	c.Update()
 }
 
-func (c *Form) onMouseUp(button nuimouse.MouseButton, x int, y int) {
+func (c *Form) processMouseUp(button nuimouse.MouseButton, x int, y int) {
 	c.topWidget.processMouseUp(button, x, y)
 }
 
-func (c *Form) onMouseMove(x int, y int) {
+func (c *Form) processMouseMove(x int, y int) {
 	c.topWidget.processMouseMove(x, y)
 	c.Update()
 }
 
-func (c *Form) onMouseLeave() {
+func (c *Form) processMouseLeave() {
 	c.topWidget.processMouseLeave()
 }
 
-func (c *Form) onMouseEnter() {
+func (c *Form) processMouseEnter() {
 	c.topWidget.processMouseEnter()
 }
 
-func (c *Form) onKeyDown(keyCode nuikey.Key, mods nuikey.KeyModifiers) {
+func (c *Form) processKeyDown(keyCode nuikey.Key, mods nuikey.KeyModifiers) {
+	if c.focusedWidget != nil {
+		c.focusedWidget.processKeyDown(keyCode)
+		return
+	}
 	c.topWidget.processKeyDown(keyCode)
 }
 
-func (c *Form) onKeyUp(keyCode nuikey.Key, mods nuikey.KeyModifiers) {
+func (c *Form) processKeyUp(keyCode nuikey.Key, mods nuikey.KeyModifiers) {
+	if c.focusedWidget != nil {
+		c.focusedWidget.processKeyUp(keyCode)
+		return
+	}
 	c.topWidget.processKeyUp(keyCode)
 }
 
-func (c *Form) onMouseWheel(deltaX int, deltaY int) {
+func (c *Form) processMouseDblClick(button nuimouse.MouseButton, x int, y int) {
+	if c.focusedWidget != nil {
+		c.focusedWidget.processMouseDblClick(button, x, y)
+		return
+	}
+	c.topWidget.processMouseDblClick(button, x, y)
+}
+
+func (c *Form) processChar(char rune) {
+	if c.focusedWidget != nil {
+		c.focusedWidget.processChar(char)
+		return
+	}
+	c.topWidget.processChar(char)
+}
+
+func (c *Form) processMouseWheel(deltaX int, deltaY int) {
+	if c.focusedWidget != nil {
+		c.focusedWidget.processMouseWheel(deltaX, deltaY)
+		return
+	}
 	c.topWidget.processMouseWheel(deltaX, deltaY)
 }

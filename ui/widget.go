@@ -80,6 +80,15 @@ func (c *Widget) H() int {
 	return c.h
 }
 
+func (c *Widget) Focus() {
+	MainForm.focusedWidget = c
+	MainForm.Update()
+}
+
+func (c *Widget) IsFocused() bool {
+	return MainForm.focusedWidget == c
+}
+
 func (c *Widget) Name() string {
 	return c.name
 }
@@ -147,6 +156,14 @@ func (c *Widget) getWidgetAt(x, y int) *Widget {
 	return nil
 }
 
+func (c *Widget) findWidgetAt(x, y int) *Widget {
+	innerWidget := c.getWidgetAt(x, y)
+	if innerWidget != nil {
+		return innerWidget.findWidgetAt(x-innerWidget.x, y-innerWidget.y)
+	}
+	return c
+}
+
 func (c *Widget) processPaint(cnv *Canvas) {
 	if c.onCustomPaint != nil {
 		c.onCustomPaint(cnv)
@@ -165,6 +182,18 @@ func (c *Widget) processPaint(cnv *Canvas) {
 		for x := 0; x < c.w; x++ {
 			cnv.SetPixel(x, 0)
 			cnv.SetPixel(x, 1)
+		}
+	}
+
+	if c.IsFocused() {
+		cnv.SetColor(color.RGBA{0, 255, 0, 255})
+		for x := 0; x < c.w; x++ {
+			cnv.SetPixel(x, 0)
+			cnv.SetPixel(x, c.h-1)
+		}
+		for y := 0; y < c.h; y++ {
+			cnv.SetPixel(0, y)
+			cnv.SetPixel(c.w-1, y)
 		}
 	}
 
@@ -187,6 +216,8 @@ func (c *Widget) processMouseDown(button nuimouse.MouseButton, x int, y int) {
 			w.processMouseDown(button, x-w.x, y-w.y)
 		}
 	}
+
+	//c.focused = true
 }
 
 func (c *Widget) processMouseUp(button nuimouse.MouseButton, x int, y int) {
@@ -259,6 +290,24 @@ func (c *Widget) processKeyUp(key nuikey.Key) {
 	}
 }
 
+func (c *Widget) processMouseDblClick(button nuimouse.MouseButton, x int, y int) {
+	if c.onMouseUp != nil {
+		c.onMouseUp(button, x, y)
+	}
+
+	for _, w := range c.widgets {
+		if x >= w.x && x < w.x+w.w && y >= w.y && y < w.y+w.h {
+			w.processMouseDblClick(button, x-w.x, y-w.y)
+		}
+	}
+}
+
+func (c *Widget) processChar(char rune) {
+	for _, w := range c.widgets {
+		w.processChar(char)
+	}
+}
+
 func (c *Widget) processMouseWheel(deltaX, deltaY int) {
 	if c.onMouseWheel != nil {
 		c.onMouseWheel(deltaX, deltaY)
@@ -296,10 +345,5 @@ func (c *Widget) updateLayout(oldWidth, oldHeight, newWidth, newHeight int) {
 
 		w.SetSize(newW, newH)
 		w.SetPosition(newX, newY)
-
-		/*w.x = newX
-		w.y = newY
-		w.w = newW
-		w.h = newH*/
 	}
 }
