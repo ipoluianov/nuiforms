@@ -32,7 +32,9 @@ type Widget struct {
 	widgets []*Widget
 
 	// temp
-	hover bool
+	hover      bool
+	lastMouseX int
+	lastMouseY int
 
 	// callbacks
 	onCustomPaint func(cnv *Canvas)
@@ -165,6 +167,14 @@ func (c *Widget) processPaint(cnv *Canvas) {
 			cnv.SetPixel(x, 1)
 		}
 	}
+
+	cnv.SetColor(color.RGBA{255, 0, 0, 255})
+
+	for x := c.lastMouseX - 2; x < c.lastMouseX+2; x++ {
+		for y := c.lastMouseY - 2; y < c.lastMouseY+2; y++ {
+			cnv.SetPixel(x, y)
+		}
+	}
 }
 
 func (c *Widget) processMouseDown(button nuimouse.MouseButton, x int, y int) {
@@ -192,6 +202,8 @@ func (c *Widget) processMouseUp(button nuimouse.MouseButton, x int, y int) {
 }
 
 func (c *Widget) processMouseMove(x int, y int) {
+	c.lastMouseX = x
+	c.lastMouseY = y
 	if c.onMouseMove != nil {
 		c.onMouseMove(x, y)
 	}

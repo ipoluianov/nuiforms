@@ -103,6 +103,7 @@ func (c *Form) onMouseUp(button nuimouse.MouseButton, x int, y int) {
 
 func (c *Form) onMouseMove(x int, y int) {
 	c.topWidget.processMouseMove(x, y)
+	c.Update()
 }
 
 func (c *Form) onMouseLeave() {
