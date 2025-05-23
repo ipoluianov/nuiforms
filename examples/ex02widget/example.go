@@ -32,6 +32,20 @@ func Run() {
 		myWidget.SetSize(780, 90)
 		myWidget.SetAnchors(true, false, true, true)
 		form.Panel().AddWidget(myWidget)
+
+		txt := ui.NewTextBlock()
+		txt.SetPosition(150, 0)
+		txt.SetSize(100, 80)
+		myWidget.AddWidget(txt)
+
+		btn := ui.NewButton()
+		btn.SetPosition(450, 30)
+		btn.SetSize(130, 30)
+		btn.SetProp("text", "Button")
+		btn.SetProp("onClick", func() {
+			txt.SetProp("text", "Hello,\r\nWorld!")
+		})
+		myWidget.AddWidget(btn)
 	}
 
 	form.Exec()
